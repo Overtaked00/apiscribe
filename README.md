@@ -14,43 +14,27 @@ Point apiscribe at a project directory. It detects your API routes, sends them t
 - **Express** — `app.get()`, `router.post()`, etc.
 - **Fastify** — `fastify.get()`, `fastify.route()`, etc.
 
-## Installation
-
-```bash
-npm install -g apiscribe
-```
-
-Or run without installing:
-
-```bash
-npx apiscribe ./my-project
-```
-
 ## Quick Start
 
 ```bash
-# Set your API key (OpenAI is the default provider, using gpt-4o-mini)
+# 1. Set your API key
 export OPENAI_API_KEY=your-key-here
 
-# Generate markdown docs
-apiscribe ./my-project
-
-# Generate an interactive HTML docs page (powered by Scalar)
-apiscribe ./my-project --html
-
-# Generate an OpenAPI 3.0 spec
-apiscribe ./my-project --openapi
-
-# Use Anthropic instead
-export ANTHROPIC_API_KEY=your-key-here
-apiscribe ./my-project -p anthropic
-
-# Use Gemini instead
-export GEMINI_API_KEY=your-key-here
-apiscribe ./my-project -p gemini
+# 2. Run it
+npx apiscribe ./my-project --serve
 ```
 
-By default this creates an `api-docs.md` file. Use `--html` for an interactive API reference page, or `--openapi` for a raw OpenAPI 3.0.3 JSON spec.
+That's it. Your browser opens with interactive API docs on `localhost:3000`.
+
+Other providers work too:
+
+```bash
+export ANTHROPIC_API_KEY=your-key-here
+npx apiscribe ./my-project --serve -p anthropic
+
+export GEMINI_API_KEY=your-key-here
+npx apiscribe ./my-project --serve -p gemini
+```
 
 ## Usage
 
