@@ -248,7 +248,22 @@ export function generateScalarHtml(spec: Record<string, any>): string {
 </head>
 <body>
   <script id="api-reference" type="application/json">${specJson}</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const apiReference = document.getElementById('api-reference');
+      if (apiReference) {
+        apiReference.dataset.configuration = JSON.stringify({
+          mcp: { disabled: true },
+        });
+      }
+    });
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+  <style>
+    .scalar-app footer { display: none !important; }
+    .scalar-app .deploy-button,
+    .scalar-app [class*="deploy"] { display: none !important; }
+  </style>
 </body>
 </html>`;
 }

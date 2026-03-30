@@ -72,7 +72,7 @@ General:
 # Preview docs in your browser (the best way to use apiscribe)
 apiscribe ./my-project --serve
 
-# Generate interactive HTML docs (Stripe-style API reference)
+# Generate interactive HTML docs you can host on your own domain
 apiscribe ./my-project --html
 
 # Generate OpenAPI spec
@@ -117,6 +117,22 @@ apiscribe checks for API keys in this order:
 3. **Infer** — Converts file paths to endpoint URLs using framework conventions (e.g., `app/api/users/[id]/route.ts` → `/api/users/:id`)
 4. **Generate** — Sends the route code to an LLM with framework-aware context and path hints
 5. **Output** — Writes structured markdown, OpenAPI JSON, or interactive HTML documentation
+
+## Hosting Your Docs
+
+With `--html`, apiscribe generates a self-contained `index.html` and `openapi.json` in your output directory. The HTML file has the full API spec embedded — no backend or database required.
+
+Host it anywhere:
+
+- Drop it into your existing website
+- Deploy to Vercel, Netlify, or GitHub Pages
+- Serve from S3, CloudFront, or any static file host
+- Add it to your project repo and serve it from your own domain
+
+```bash
+apiscribe ./my-project --html -o docs/api-docs.md
+# outputs docs/openapi.json and docs/index.html — ready to deploy
+```
 
 ## Adding Framework Support
 
