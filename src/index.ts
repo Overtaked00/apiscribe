@@ -102,9 +102,7 @@ export async function runRoutedoc(directory: string, options: RoutedocOptions): 
   }
 
   // Build prompt
-  const systemPrompt = isOpenApiMode
-    ? buildOpenApiSystemPrompt()
-    : buildSystemPrompt();
+  const systemPrompt = isOpenApiMode ? buildOpenApiSystemPrompt() : buildSystemPrompt();
   const chunks = isOpenApiMode
     ? buildOpenApiPromptChunks(scanResult.routes, scanResult.detectedFrameworks)
     : buildPromptChunks(scanResult.routes, scanResult.detectedFrameworks);
@@ -219,10 +217,7 @@ export async function runRoutedoc(directory: string, options: RoutedocOptions): 
   }
 }
 
-async function startDocServer(
-  specPath: string,
-  spec: Record<string, any>,
-): Promise<void> {
+async function startDocServer(specPath: string, spec: Record<string, any>): Promise<void> {
   const port = 3000;
   const { generateScalarHtml } = await import('./openapi.js');
 
@@ -246,11 +241,7 @@ async function startDocServer(
 
     // Auto-open browser
     const openCmd =
-      process.platform === 'darwin'
-        ? 'open'
-        : process.platform === 'win32'
-          ? 'start'
-          : 'xdg-open';
+      process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
     exec(`${openCmd} ${url}`);
   });
 

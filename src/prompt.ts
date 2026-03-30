@@ -33,10 +33,7 @@ export function buildRouteContext(routes: DetectedRoute[], detectedFrameworks: s
   return parts.join('\n');
 }
 
-export function chunkRoutes(
-  routes: DetectedRoute[],
-  maxTokensPerChunk = 60000,
-): DetectedRoute[][] {
+export function chunkRoutes(routes: DetectedRoute[], maxTokensPerChunk = 60000): DetectedRoute[][] {
   const totalCodeTokens = routes.reduce((sum, r) => sum + estimateTokens(r.content), 0);
 
   if (totalCodeTokens <= maxTokensPerChunk) {
