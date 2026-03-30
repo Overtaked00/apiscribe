@@ -20,7 +20,10 @@ Point apiscribe at a project directory. It detects your API routes, sends them t
 # 1. Set your API key
 export OPENAI_API_KEY=your-key-here
 
-# 2. Run it
+# 2. Run it from your project directory
+npx apiscribe . --serve
+
+# Or point at a project from anywhere
 npx apiscribe ./my-project --serve
 ```
 
