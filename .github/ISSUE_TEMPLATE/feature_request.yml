@@ -1,0 +1,18 @@
+name: Feature Request
+description: Suggest a feature for apiscribe
+labels: [enhancement]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: What would you like apiscribe to do?
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: How would this help you?
+    validations:
+      required: true
