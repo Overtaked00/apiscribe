@@ -7,6 +7,10 @@ Scan any backend project and generate API documentation with AI.
 
 Point apiscribe at a project directory — or a public GitHub repo. It detects your API routes, sends them to an LLM, and outputs documentation — as markdown, OpenAPI spec, or interactive HTML docs with a built-in AI chat assistant.
 
+![apiscribe command](assets/command.png)
+
+![Downloading and scanning](assets/download.png)
+
 ## Supported Frameworks
 
 - **Next.js App Router** — `app/api/**/route.ts`
@@ -31,6 +35,8 @@ npx apiscribe expressjs/express --serve
 ```
 
 That's it. Your browser opens with interactive API docs on `localhost:3000`, complete with an AI chat assistant you can ask questions about your API.
+
+![Interactive API docs](assets/web-docs.png)
 
 Other providers work too:
 
@@ -108,6 +114,8 @@ apiscribe https://github.com/expressjs/express --html
 When using `--serve`, apiscribe adds an AI chat assistant to your docs. Click the **Ask AI** bubble in the bottom-right corner to open a chat panel where you can ask questions about your API — how endpoints work, what parameters are required, or how to integrate with your app.
 
 The assistant uses the same LLM provider you configured and has full context of your generated OpenAPI spec.
+
+![Ask AI chat](assets/ai-chat.png)
 
 ## GitHub Repos
 
