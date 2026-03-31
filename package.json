@@ -4,7 +4,7 @@
   "description": "Scan any backend project and generate API documentation with AI",
   "type": "module",
   "bin": {
-    "apiscribe": "./bin/apiscribe.js"
+    "apiscribe": "bin/apiscribe.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -41,7 +41,7 @@
   "author": "joseguapo",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Overtaked00/apiscribe.git"
+    "url": "git+https://github.com/Overtaked00/apiscribe.git"
   },
   "homepage": "https://github.com/Overtaked00/apiscribe#readme",
   "bugs": {
