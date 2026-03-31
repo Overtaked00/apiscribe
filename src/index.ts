@@ -257,11 +257,13 @@ function buildChatSystemPrompt(spec: OpenApiSpec): string {
   for (const [path, methods] of Object.entries(spec.paths || {})) {
     for (const [method, details] of Object.entries(methods)) {
       if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
-        const op = details as { summary?: string; description?: string; parameters?: Array<{ name: string; in: string }> };
+        const op = details as {
+          summary?: string;
+          description?: string;
+          parameters?: Array<{ name: string; in: string }>;
+        };
         const summary = op.summary || op.description || '';
-        const params = (op.parameters || [])
-          .map((p) => `${p.name} (${p.in})`)
-          .join(', ');
+        const params = (op.parameters || []).map((p) => `${p.name} (${p.in})`).join(', ');
         let line = `  ${method.toUpperCase()} ${path}`;
         if (summary) line += ` — ${summary}`;
         if (params) line += ` [params: ${params}]`;
@@ -305,7 +307,9 @@ async function startDocServer(
       res.end(specJson);
     } else if (req.url === '/api/chat' && req.method === 'POST') {
       let body = '';
-      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('data', (chunk: Buffer) => {
+        body += chunk.toString();
+      });
       req.on('end', async () => {
         try {
           const { message } = JSON.parse(body);

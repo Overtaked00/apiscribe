@@ -54,10 +54,7 @@ export function parseGitHubSource(input: string): GitHubSource {
   };
 }
 
-async function fetchTarball(
-  source: GitHubSource,
-  branch: string,
-): Promise<Response> {
+async function fetchTarball(source: GitHubSource, branch: string): Promise<Response> {
   const url = `https://codeload.github.com/${source.owner}/${source.repo}/tar.gz/${branch}`;
   return fetch(url, { headers: { 'User-Agent': 'apiscribe' } });
 }

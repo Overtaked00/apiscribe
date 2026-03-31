@@ -256,10 +256,7 @@ export function mergeOpenApiSpecs(specs: OpenApiSpec[]): OpenApiSpec {
   return merged;
 }
 
-export function generateScalarHtml(
-  spec: OpenApiSpec,
-  options?: { serveMode?: boolean },
-): string {
+export function generateScalarHtml(spec: OpenApiSpec, options?: { serveMode?: boolean }): string {
   const title = spec.info?.title || 'API Reference';
   const specJson = JSON.stringify(spec);
   const serveMode = options?.serveMode ?? false;
