@@ -235,9 +235,243 @@ export function mergeOpenApiSpecs(specs: Record<string, any>[]): Record<string, 
   return merged;
 }
 
-export function generateScalarHtml(spec: Record<string, any>): string {
+export function generateScalarHtml(
+  spec: Record<string, any>,
+  options?: { serveMode?: boolean },
+): string {
   const title = spec.info?.title || 'API Reference';
   const specJson = JSON.stringify(spec);
+  const serveMode = options?.serveMode ?? false;
+
+  const scalarConfig = JSON.stringify({
+    mcp: { disabled: true },
+    agent: { disabled: true },
+    showDeveloperTools: 'never',
+    hideClientButton: true,
+  }).replace(/'/g, '&#39;');
+
+  const apiTitle = spec.info?.title || 'this API';
+  const chatWidget = serveMode
+    ? `
+  <script>
+  // Wait for Scalar to finish rendering, then inject chat widget dynamically
+  function initChatWidget() {
+    // Inject styles
+    var style = document.createElement('style');
+    style.textContent = \`
+      #ask-ai-bubble {
+        position: fixed; bottom: 20px; right: 20px; z-index: 10001;
+        width: 64px; height: 64px; border-radius: 50%; border: none;
+        background: #1e1b4b; color: #fff; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        transition: background 0.15s, transform 0.15s;
+        padding: 0;
+      }
+      #ask-ai-bubble:hover { background: #312e81; transform: scale(1.05); }
+      .bubble-ring-text {
+        position: absolute; width: 96px; height: 96px;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      .bubble-ring-text text {
+        fill: #1e1b4b; font-size: 12px; font-weight: 700;
+        letter-spacing: 3px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      #chat-sidebar {
+        position: fixed; top: 0; right: 0; width: 380px; height: 100vh;
+        background: #fff; border-left: 1px solid #e5e7eb; z-index: 10000;
+        display: none; flex-direction: column;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+      }
+      #chat-sidebar.open { display: flex; }
+      #chat-sidebar-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 16px 20px; font-weight: 600; font-size: 14px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      #chat-close {
+        background: none; border: none; font-size: 22px; cursor: pointer;
+        color: #6b7280; padding: 0; line-height: 1;
+      }
+      #chat-close:hover { color: #111; }
+      #chat-disclaimer {
+        padding: 10px 20px; font-size: 12px; color: #9ca3af;
+        background: #f9fafb; border-bottom: 1px solid #e5e7eb; text-align: center;
+      }
+      #chat-messages {
+        flex: 1; overflow-y: auto; padding: 20px;
+        font-size: 14px; line-height: 1.6;
+      }
+      #chat-welcome p { color: #6b7280; margin: 0 0 16px 0; }
+      #chat-suggestions { display: flex; flex-direction: column; gap: 8px; }
+      .chat-suggestion {
+        padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px;
+        cursor: pointer; font-size: 13px; color: #4f46e5; background: #f9fafb;
+        text-align: left; transition: all 0.15s;
+      }
+      .chat-suggestion:hover { background: #eef2ff; border-color: #c7d2fe; }
+      .chat-msg { margin-bottom: 16px; }
+      .chat-msg.user { text-align: right; }
+      .chat-msg .bubble {
+        display: inline-block; padding: 10px 14px; border-radius: 12px;
+        max-width: 90%; text-align: left; word-wrap: break-word;
+      }
+      .chat-msg.user .bubble {
+        background: #1e1b4b; color: #fff; border-bottom-right-radius: 4px;
+      }
+      .chat-msg.assistant .bubble {
+        background: #f3f4f6; color: #1f2937; border-bottom-left-radius: 4px;
+        white-space: pre-wrap;
+      }
+      .chat-msg.assistant .bubble code {
+        background: #e5e7eb; padding: 1px 4px; border-radius: 3px; font-size: 13px;
+      }
+      .chat-loading .bubble {
+        display: inline-flex; align-items: center; gap: 4px; padding: 14px 18px;
+      }
+      .chat-loading .bubble .dot {
+        width: 6px; height: 6px; background: #9ca3af; border-radius: 50%;
+        animation: dotBounce 1.4s infinite ease-in-out both;
+      }
+      .chat-loading .bubble .dot:nth-child(1) { animation-delay: -0.32s; }
+      .chat-loading .bubble .dot:nth-child(2) { animation-delay: -0.16s; }
+      .chat-loading .bubble .dot:nth-child(3) { animation-delay: 0s; }
+      @keyframes dotBounce {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+      #chat-input-area {
+        padding: 16px 20px; border-top: 1px solid #e5e7eb; background: #fff;
+      }
+      #chat-form { display: flex; gap: 8px; align-items: center; }
+      #chat-input {
+        flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 10px;
+        font-size: 14px; outline: none; background: #f9fafb;
+      }
+      #chat-input:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
+      #chat-send {
+        width: 36px; height: 36px; background: #1e1b4b; color: #fff; border: none;
+        border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+      }
+      #chat-send:hover { background: #312e81; }
+      #chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+    \`;
+    document.head.appendChild(style);
+
+    var apiTitle = ${JSON.stringify(apiTitle.replace(/'/g, "\\'").replace(/</g, '&lt;'))};
+
+    // Create bubble button
+    var bubble = document.createElement('button');
+    bubble.id = 'ask-ai-bubble';
+    bubble.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><svg class="bubble-ring-text" viewBox="0 0 100 100"><defs><path id="circlePath" d="M 50,50 m -38,0 a 38,38 0 0,1 76,0"/></defs><text><textPath href="#circlePath" startOffset="50%" text-anchor="middle">ASK AI</textPath></text></svg>';
+    document.body.appendChild(bubble);
+
+    // Create sidebar
+    var sidebar = document.createElement('div');
+    sidebar.id = 'chat-sidebar';
+    sidebar.innerHTML = '<div id="chat-sidebar-header"><div style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Ask AI</span></div><button id="chat-close">&times;</button></div><div id="chat-disclaimer">Responses are generated using AI and may contain mistakes.</div><div id="chat-messages"><div id="chat-welcome"><p>Ask questions about <strong>' + apiTitle + '</strong> and get help with your integration.</p><div id="chat-suggestions"></div></div></div><div id="chat-input-area"><form id="chat-form"><input id="chat-input" type="text" placeholder="Ask a question" autocomplete="off" /><button type="submit" id="chat-send" title="Send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></form></div>';
+    document.body.appendChild(sidebar);
+
+    // Suggested questions
+    var suggestions = document.getElementById('chat-suggestions');
+    ['What endpoints are available?', 'How does authentication work?', 'Show me how to create a resource'].forEach(function(q) {
+      var btn = document.createElement('button');
+      btn.className = 'chat-suggestion';
+      btn.textContent = q;
+      btn.onclick = function() { askQuestion(q); };
+      suggestions.appendChild(btn);
+    });
+
+    function toggleChat() {
+      sidebar.classList.toggle('open');
+      var isOpen = sidebar.classList.contains('open');
+      bubble.style.display = isOpen ? 'none' : 'flex';
+      // Push page content left
+      var scalarApp = document.querySelector('.scalar-app') || document.body.firstElementChild;
+      if (scalarApp) {
+        scalarApp.style.transition = 'margin-right 0.25s ease';
+        scalarApp.style.marginRight = isOpen ? '380px' : '0';
+      }
+      if (isOpen) document.getElementById('chat-input').focus();
+    }
+    function askQuestion(q) {
+      document.getElementById('chat-input').value = q;
+      document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+    }
+    function formatText(text) {
+      var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      s = s.replace(/\x60([^\x60]+)\x60/g, '<code>$1</code>');
+      s = s.replace(/[*][*](.+?)[*][*]/g, '<strong>$1</strong>');
+      s = s.replace(/\\n/g, '<br>');
+      return s;
+    }
+    function addLoadingMessage() {
+      var messages = document.getElementById('chat-messages');
+      var div = document.createElement('div');
+      div.className = 'chat-msg assistant chat-loading';
+      div.innerHTML = '<div class="bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+      return div;
+    }
+    function addMessage(text, role) {
+      var messages = document.getElementById('chat-messages');
+      var div = document.createElement('div');
+      div.className = 'chat-msg ' + role;
+      var b = document.createElement('div');
+      b.className = 'bubble';
+      if (role === 'assistant') { b.innerHTML = formatText(text); } else { b.textContent = text; }
+      div.appendChild(b);
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+      return div;
+    }
+    async function sendMessage(e) {
+      e.preventDefault();
+      var input = document.getElementById('chat-input');
+      var msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      var welcome = document.getElementById('chat-welcome');
+      if (welcome) welcome.style.display = 'none';
+      addMessage(msg, 'user');
+      var loadingDiv = addLoadingMessage();
+      var sendBtn = document.getElementById('chat-send');
+      sendBtn.disabled = true;
+      try {
+        var res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg }),
+        });
+        var data = await res.json();
+        loadingDiv.remove();
+        addMessage(data.reply || data.error || 'No response', 'assistant');
+      } catch (err) {
+        loadingDiv.remove();
+        addMessage('Failed to connect to server.', 'assistant');
+      }
+      sendBtn.disabled = false;
+      input.focus();
+    }
+
+    bubble.addEventListener('click', toggleChat);
+    document.getElementById('chat-close').addEventListener('click', toggleChat);
+    document.getElementById('chat-form').addEventListener('submit', sendMessage);
+  }
+
+  // Wait for Scalar to render before injecting
+  if (document.readyState === 'complete') {
+    setTimeout(initChatWidget, 500);
+  } else {
+    window.addEventListener('load', function() { setTimeout(initChatWidget, 500); });
+  }
+  </script>`
+    : '';
 
   return `<!DOCTYPE html>
 <html>
@@ -245,25 +479,22 @@ export function generateScalarHtml(spec: Record<string, any>): string {
   <title>${title}</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-</head>
-<body>
-  <script id="api-reference" type="application/json">${specJson}</script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const apiReference = document.getElementById('api-reference');
-      if (apiReference) {
-        apiReference.dataset.configuration = JSON.stringify({
-          mcp: { disabled: true },
-        });
-      }
-    });
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
   <style>
-    .scalar-app footer { display: none !important; }
+    .scalar-app footer,
+    footer,
+    [class*="powered"],
+    a[href*="scalar.com"] { display: none !important; }
     .scalar-app .deploy-button,
     .scalar-app [class*="deploy"] { display: none !important; }
+    .scalar-app .darklight-reference-promo,
+    .scalar-app [class*="promo"] { display: none !important; }
+    .scalar-app .scalar-header-actions,
+    .scalar-app [class*="header-action"] { display: none !important; }
   </style>
+</head>
+<body>
+  <script id="api-reference" type="application/json" data-configuration='${scalarConfig}'>${specJson}</script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>${chatWidget}
 </body>
 </html>`;
 }
