@@ -115,7 +115,7 @@ When using `--serve`, apiscribe adds an AI chat assistant to your docs. Click th
 
 The assistant uses the same LLM provider you configured and has full context of your generated OpenAPI spec.
 
-![Ask AI chat](assets/ai-chat.png)
+<img src="assets/ai-chat.png" alt="Ask AI chat" width="350">
 
 ## GitHub Repos
 
