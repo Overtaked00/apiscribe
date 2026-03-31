@@ -1,13 +1,13 @@
-# apiscribe
+# API Scribe
 
 [![npm version](https://img.shields.io/npm/v/apiscribe)](https://www.npmjs.com/package/apiscribe)
 [![license](https://img.shields.io/npm/l/apiscribe)](https://github.com/Overtaked00/apiscribe/blob/main/LICENSE)
 
 Scan any backend project and generate API documentation with AI.
 
-Point apiscribe at a project directory — or a public GitHub repo. It detects your API routes, sends them to an LLM, and outputs documentation — as markdown, OpenAPI spec, or interactive HTML docs with a built-in AI chat assistant.
+Point API Scribe at a project directory — or a public GitHub repo. It detects your API routes, sends them to an LLM, and outputs documentation — as markdown, OpenAPI spec, or interactive HTML docs with a built-in AI chat assistant.
 
-![apiscribe command](assets/command.png)
+![API Scribe command](assets/command.png)
 
 ![Downloading and scanning](assets/download.png)
 
@@ -78,7 +78,7 @@ General:
 ## Examples
 
 ```bash
-# Preview docs in your browser (the best way to use apiscribe)
+# Preview docs in your browser (the best way to use API Scribe)
 apiscribe ./my-project --serve
 
 # Generate interactive HTML docs you can host on your own domain
@@ -111,7 +111,7 @@ apiscribe https://github.com/expressjs/express --html
 
 ## Ask AI
 
-When using `--serve`, apiscribe adds an AI chat assistant to your docs. Click the **Ask AI** bubble in the bottom-right corner to open a chat panel where you can ask questions about your API — how endpoints work, what parameters are required, or how to integrate with your app.
+When using `--serve`, API Scribe adds an AI chat assistant to your docs. Click the **Ask AI** bubble in the bottom-right corner to open a chat panel where you can ask questions about your API — how endpoints work, what parameters are required, or how to integrate with your app.
 
 The assistant uses the same LLM provider you configured and has full context of your generated OpenAPI spec.
 
@@ -132,11 +132,11 @@ apiscribe expressjs/express#5.x --dry-run
 apiscribe https://github.com/expressjs/express --html
 ```
 
-apiscribe downloads a tarball of the repo, scans it, and cleans up automatically.
+API Scribe downloads a tarball of the repo, scans it, and cleans up automatically.
 
 ## API Key Configuration
 
-apiscribe checks for API keys in this order:
+API Scribe checks for API keys in this order:
 
 1. **Environment variable** — `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`
 2. **Config file** — `~/.apiscribe/config.json`
