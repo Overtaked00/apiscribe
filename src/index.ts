@@ -14,6 +14,7 @@ import {
   extractAndValidateOpenApiJson,
   mergeOpenApiSpecs,
 } from './openapi.js';
+import { isGitHubSource, parseGitHubSource, downloadRepo, cleanupRepo } from './github.js';
 
 export interface RoutedocOptions {
   output: string;
@@ -214,6 +215,34 @@ export async function runRoutedoc(directory: string, options: RoutedocOptions): 
       },
     );
     spinner.succeed(`Documentation written to ${chalk.green(options.output)}`);
+  }
+}
+
+export async function resolveAndRun(input: string, options: RoutedocOptions): Promise<void> {
+  if (!isGitHubSource(input)) {
+    return runRoutedoc(input, options);
+  }
+
+  const source = parseGitHubSource(input);
+  const label = `${source.owner}/${source.repo}${source.branch ? `#${source.branch}` : ''}`;
+  const spinner = ora();
+  spinner.start(`Downloading ${label}...`);
+
+  let tmpDir: string;
+  try {
+    tmpDir = await downloadRepo(source);
+  } catch (error: any) {
+    spinner.fail(`Failed to download ${label}`);
+    console.error(chalk.red(error.message));
+    process.exit(1);
+  }
+
+  spinner.succeed(`Downloaded ${label}`);
+
+  try {
+    await runRoutedoc(tmpDir, options);
+  } finally {
+    await cleanupRepo(tmpDir);
   }
 }
 

@@ -25,6 +25,9 @@ npx apiscribe . --serve
 
 # Or point at a project from anywhere
 npx apiscribe ./my-project --serve
+
+# Or scan a public GitHub repo directly
+npx apiscribe expressjs/express --serve
 ```
 
 That's it. Your browser opens with interactive API docs on `localhost:3000`.
@@ -42,7 +45,7 @@ npx apiscribe ./my-project --serve -p gemini
 ## Usage
 
 ```
-apiscribe <directory> [options]
+apiscribe <directory|owner/repo> [options]
 
 Output formats:
   --serve                Preview docs on localhost:3000 (implies --html)
@@ -93,6 +96,11 @@ apiscribe ./my-project --serve -p anthropic -m claude-sonnet-4-20250514
 
 # Only scan Next.js routes
 apiscribe ./my-project --serve --frameworks nextjs
+
+# Scan a public GitHub repo
+apiscribe expressjs/express --serve
+apiscribe expressjs/express#5.x --dry-run
+apiscribe https://github.com/expressjs/express --html
 ```
 
 ## API Key Configuration
