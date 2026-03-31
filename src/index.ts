@@ -14,6 +14,7 @@ import {
   extractAndValidateOpenApiJson,
   mergeOpenApiSpecs,
 } from './openapi.js';
+import { isGitHubSource, parseGitHubSource, downloadRepo, cleanupRepo } from './github.js';
 
 export interface RoutedocOptions {
   output: string;
@@ -196,7 +197,7 @@ export async function runRoutedoc(directory: string, options: RoutedocOptions): 
     }
 
     if (options.serve && result.specPath) {
-      await startDocServer(result.specPath, mergedSpec);
+      await startDocServer(result.specPath, mergedSpec, llmOptions);
     } else if (result.htmlPath) {
       console.log(chalk.dim(`  Open in your browser to view the API reference`));
     }
@@ -217,17 +218,114 @@ export async function runRoutedoc(directory: string, options: RoutedocOptions): 
   }
 }
 
-async function startDocServer(specPath: string, spec: Record<string, any>): Promise<void> {
+export async function resolveAndRun(input: string, options: RoutedocOptions): Promise<void> {
+  if (!isGitHubSource(input)) {
+    return runRoutedoc(input, options);
+  }
+
+  const source = parseGitHubSource(input);
+  const label = `${source.owner}/${source.repo}${source.branch ? `#${source.branch}` : ''}`;
+  const spinner = ora();
+  spinner.start(`Downloading ${label}...`);
+
+  let tmpDir: string;
+  try {
+    tmpDir = await downloadRepo(source);
+  } catch (error: any) {
+    spinner.fail(`Failed to download ${label}`);
+    console.error(chalk.red(error.message));
+    process.exit(1);
+  }
+
+  spinner.succeed(`Downloaded ${label}`);
+
+  try {
+    await runRoutedoc(tmpDir, options);
+  } finally {
+    await cleanupRepo(tmpDir);
+  }
+}
+
+function buildChatSystemPrompt(spec: Record<string, any>): string {
+  const title = spec.info?.title || 'API';
+  const description = spec.info?.description || '';
+  const baseUrl = spec.servers?.[0]?.url || '';
+
+  const endpoints: string[] = [];
+  for (const [path, methods] of Object.entries(spec.paths || {})) {
+    for (const [method, details] of Object.entries(methods as Record<string, any>)) {
+      if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
+        const summary = details.summary || details.description || '';
+        const params = (details.parameters || [])
+          .map((p: any) => `${p.name} (${p.in})`)
+          .join(', ');
+        let line = `  ${method.toUpperCase()} ${path}`;
+        if (summary) line += ` — ${summary}`;
+        if (params) line += ` [params: ${params}]`;
+        endpoints.push(line);
+      }
+    }
+  }
+
+  return `You are a helpful API assistant for "${title}". Answer questions about this API in clear, natural language. Never dump raw JSON. Be concise.
+
+API: ${title}
+${description ? `Description: ${description}` : ''}
+${baseUrl ? `Base URL: ${baseUrl}` : ''}
+
+Endpoints:
+${endpoints.join('\n')}
+
+When answering:
+- Describe endpoints in plain language
+- Include the HTTP method and path
+- Mention required parameters or request body fields when relevant
+- Give short code examples if helpful`;
+}
+
+async function startDocServer(
+  specPath: string,
+  spec: Record<string, any>,
+  llmOptions: { provider: LlmProvider; model?: string; apiKey: string },
+): Promise<void> {
   const port = 3000;
   const { generateScalarHtml } = await import('./openapi.js');
 
   const specJson = JSON.stringify(spec);
-  const html = generateScalarHtml(spec);
+  const html = generateScalarHtml(spec, { serveMode: true });
 
-  const server = http.createServer((req, res) => {
+  const chatSystemPrompt = buildChatSystemPrompt(spec);
+
+  const server = http.createServer(async (req, res) => {
     if (req.url === '/openapi.json') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(specJson);
+    } else if (req.url === '/api/chat' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('end', async () => {
+        try {
+          const { message } = JSON.parse(body);
+          if (!message) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Message is required' }));
+            return;
+          }
+          const response = await callLlm(chatSystemPrompt, message, {
+            provider: llmOptions.provider,
+            apiKey: llmOptions.apiKey,
+            model: llmOptions.model,
+            maxTokens: 2048,
+            jsonMode: false,
+          });
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ reply: response.content }));
+        } catch (error: any) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: error.message || 'Chat failed' }));
+        }
+      });
+      return;
     } else {
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(html);

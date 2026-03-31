@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { runRoutedoc } from './index.js';
+import { resolveAndRun } from './index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,7 +22,7 @@ program
   .name('apiscribe')
   .description('Scan any backend project and generate API documentation with AI')
   .version(getVersion())
-  .argument('<directory>', 'Path to the project directory to scan')
+  .argument('<directory>', 'Project directory or GitHub repo (owner/repo)')
   .option('-o, --output <file>', 'Output file path', 'api-docs.md')
   .option('-p, --provider <name>', 'LLM provider: openai, anthropic, or gemini', 'openai')
   .option('-m, --model <name>', 'Model name override')
@@ -45,10 +45,15 @@ Examples:
   $ apiscribe ./my-project --openapi
   $ apiscribe ./my-project --html
   $ apiscribe ./my-project --serve
-  $ npx apiscribe ./my-project`,
+  $ npx apiscribe ./my-project
+
+GitHub repos (public only):
+  $ apiscribe expressjs/express
+  $ apiscribe expressjs/express#5.x
+  $ apiscribe https://github.com/expressjs/express`,
   )
   .action(async (directory: string, options) => {
-    await runRoutedoc(directory, {
+    await resolveAndRun(directory, {
       output: options.output,
       provider: options.provider,
       model: options.model,

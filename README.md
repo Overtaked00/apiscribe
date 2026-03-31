@@ -25,6 +25,9 @@ npx apiscribe . --serve
 
 # Or point at a project from anywhere
 npx apiscribe ./my-project --serve
+
+# Or scan a public GitHub repo directly
+npx apiscribe expressjs/express --serve
 ```
 
 That's it. Your browser opens with interactive API docs on `localhost:3000`.
@@ -42,7 +45,7 @@ npx apiscribe ./my-project --serve -p gemini
 ## Usage
 
 ```
-apiscribe <directory> [options]
+apiscribe <directory|owner/repo> [options]
 
 Output formats:
   --serve                Preview docs on localhost:3000 (implies --html)
@@ -72,7 +75,7 @@ General:
 # Preview docs in your browser (the best way to use apiscribe)
 apiscribe ./my-project --serve
 
-# Generate interactive HTML docs (Stripe-style API reference)
+# Generate interactive HTML docs you can host on your own domain
 apiscribe ./my-project --html
 
 # Generate OpenAPI spec
@@ -93,6 +96,11 @@ apiscribe ./my-project --serve -p anthropic -m claude-sonnet-4-20250514
 
 # Only scan Next.js routes
 apiscribe ./my-project --serve --frameworks nextjs
+
+# Scan a public GitHub repo
+apiscribe expressjs/express --serve
+apiscribe expressjs/express#5.x --dry-run
+apiscribe https://github.com/expressjs/express --html
 ```
 
 ## API Key Configuration
@@ -117,6 +125,22 @@ apiscribe checks for API keys in this order:
 3. **Infer** — Converts file paths to endpoint URLs using framework conventions (e.g., `app/api/users/[id]/route.ts` → `/api/users/:id`)
 4. **Generate** — Sends the route code to an LLM with framework-aware context and path hints
 5. **Output** — Writes structured markdown, OpenAPI JSON, or interactive HTML documentation
+
+## Hosting Your Docs
+
+With `--html`, apiscribe generates a self-contained `index.html` and `openapi.json` in your output directory. The HTML file has the full API spec embedded — no backend or database required.
+
+Host it anywhere:
+
+- Drop it into your existing website
+- Deploy to Vercel, Netlify, or GitHub Pages
+- Serve from S3, CloudFront, or any static file host
+- Add it to your project repo and serve it from your own domain
+
+```bash
+apiscribe ./my-project --html -o docs/api-docs.md
+# outputs docs/openapi.json and docs/index.html — ready to deploy
+```
 
 ## Adding Framework Support
 
