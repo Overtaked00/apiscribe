@@ -5,7 +5,7 @@
 
 Scan any backend project and generate API documentation with AI.
 
-Point apiscribe at a project directory. It detects your API routes, sends them to an LLM, and outputs documentation — as markdown, OpenAPI spec, or a Stripe-style interactive HTML page.
+Point apiscribe at a project directory — or a public GitHub repo. It detects your API routes, sends them to an LLM, and outputs documentation — as markdown, OpenAPI spec, or interactive HTML docs with a built-in AI chat assistant.
 
 ## Supported Frameworks
 
@@ -30,7 +30,7 @@ npx apiscribe ./my-project --serve
 npx apiscribe expressjs/express --serve
 ```
 
-That's it. Your browser opens with interactive API docs on `localhost:3000`.
+That's it. Your browser opens with interactive API docs on `localhost:3000`, complete with an AI chat assistant you can ask questions about your API.
 
 Other providers work too:
 
@@ -103,6 +103,29 @@ apiscribe expressjs/express#5.x --dry-run
 apiscribe https://github.com/expressjs/express --html
 ```
 
+## Ask AI
+
+When using `--serve`, apiscribe adds an AI chat assistant to your docs. Click the **Ask AI** bubble in the bottom-right corner to open a chat panel where you can ask questions about your API — how endpoints work, what parameters are required, or how to integrate with your app.
+
+The assistant uses the same LLM provider you configured and has full context of your generated OpenAPI spec.
+
+## GitHub Repos
+
+Scan any public GitHub repo without cloning it:
+
+```bash
+# owner/repo format
+apiscribe expressjs/express --serve
+
+# specific branch
+apiscribe expressjs/express#5.x --dry-run
+
+# full URL
+apiscribe https://github.com/expressjs/express --html
+```
+
+apiscribe downloads a tarball of the repo, scans it, and cleans up automatically.
+
 ## API Key Configuration
 
 apiscribe checks for API keys in this order:
@@ -120,11 +143,12 @@ apiscribe checks for API keys in this order:
 
 ## How It Works
 
-1. **Scan** — Walks your project directory and matches files against framework-specific patterns
+1. **Scan** — Walks your project directory (or downloads a GitHub repo) and matches files against framework-specific patterns
 2. **Detect** — Identifies the framework (Next.js, Supabase, Express, Fastify) and extracts HTTP methods
 3. **Infer** — Converts file paths to endpoint URLs using framework conventions (e.g., `app/api/users/[id]/route.ts` → `/api/users/:id`)
 4. **Generate** — Sends the route code to an LLM with framework-aware context and path hints
 5. **Output** — Writes structured markdown, OpenAPI JSON, or interactive HTML documentation
+6. **Serve** — With `--serve`, starts a local server with interactive docs and an AI chat assistant
 
 ## Hosting Your Docs
 
