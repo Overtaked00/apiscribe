@@ -7,9 +7,9 @@ Scan any backend project and generate API documentation with AI.
 
 Point API Scribe at a project directory — or a public GitHub repo. It detects your API routes, sends them to an LLM, and outputs documentation — as markdown, OpenAPI spec, or interactive HTML docs with a built-in AI chat assistant.
 
-![API Scribe command](assets/command.png)
+![API Scribe command](https://raw.githubusercontent.com/Overtaked00/apiscribe/main/assets/command.png)
 
-![Downloading and scanning](assets/download.png)
+![Downloading and scanning](https://raw.githubusercontent.com/Overtaked00/apiscribe/main/assets/download.png)
 
 ## Supported Frameworks
 
@@ -36,7 +36,7 @@ npx apiscribe expressjs/express --serve
 
 That's it. Your browser opens with interactive API docs on `localhost:3000`, complete with an AI chat assistant you can ask questions about your API.
 
-![Interactive API docs](assets/web-docs.png)
+![Interactive API docs](https://raw.githubusercontent.com/Overtaked00/apiscribe/main/assets/web-docs.png)
 
 Other providers work too:
 
@@ -115,7 +115,7 @@ When using `--serve`, API Scribe adds an AI chat assistant to your docs. Click t
 
 The assistant uses the same LLM provider you configured and has full context of your generated OpenAPI spec.
 
-<p align="center"><img src="assets/ai-chat.png" alt="Ask AI chat" width="350"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/Overtaked00/apiscribe/main/assets/ai-chat.png" alt="Ask AI chat" width="350"></p>
 
 ## GitHub Repos
 
