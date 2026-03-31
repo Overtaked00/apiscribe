@@ -101,7 +101,7 @@ export async function downloadRepo(source: GitHubSource): Promise<string> {
     throw new Error('Empty response body');
   }
 
-  const nodeStream = Readable.fromWeb(body as any);
+  const nodeStream = Readable.fromWeb(body as unknown as import('stream/web').ReadableStream);
 
   await pipeline(nodeStream, createGunzip(), tar.extract({ cwd: tmpDir, strip: 1 }));
 

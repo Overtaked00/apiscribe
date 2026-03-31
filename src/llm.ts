@@ -147,9 +147,10 @@ export async function callLlm(
 
   try {
     return await callFn(systemPrompt, userPrompt, options);
-  } catch (error: any) {
-    if (error.status === 429 || error.status === 500 || error.status === 503) {
-      const retryAfter = parseInt(error.headers?.['retry-after'] || '5', 10);
+  } catch (error: unknown) {
+    const err = error as { status?: number; headers?: Record<string, string> };
+    if (err.status === 429 || err.status === 500 || err.status === 503) {
+      const retryAfter = parseInt(err.headers?.['retry-after'] || '5', 10);
       await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
       return await callFn(systemPrompt, userPrompt, options);
     }

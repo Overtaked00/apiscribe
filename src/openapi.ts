@@ -1,6 +1,27 @@
 import type { DetectedRoute } from './frameworks/index.js';
 import { buildRouteContext, chunkRoutes } from './prompt.js';
 
+/** Minimal OpenAPI 3.0 spec shape — allows arbitrary extensions via index signature */
+export interface OpenApiSpec {
+  openapi?: string;
+  info?: { title?: string; version?: string; description?: string };
+  servers?: Array<{ url?: string; description?: string }>;
+  tags?: Array<{ name: string; description?: string }>;
+  paths?: Record<string, Record<string, OpenApiOperation>>;
+  components?: {
+    schemas?: Record<string, unknown>;
+    securitySchemes?: Record<string, unknown>;
+  };
+  [key: string]: unknown;
+}
+
+interface OpenApiOperation {
+  summary?: string;
+  description?: string;
+  parameters?: Array<{ name: string; in: string }>;
+  [key: string]: unknown;
+}
+
 export function buildOpenApiSystemPrompt(): string {
   return `You are apiscribe, an API documentation generator. Your job is to analyze backend route handler source code and produce a valid OpenAPI 3.0.3 JSON specification for every API endpoint found.
 
@@ -114,7 +135,7 @@ export function buildOpenApiPromptChunks(
   return chunks.map((chunk) => buildOpenApiUserPrompt(chunk, detectedFrameworks));
 }
 
-export function extractAndValidateOpenApiJson(raw: string): Record<string, any> {
+export function extractAndValidateOpenApiJson(raw: string): OpenApiSpec {
   let cleaned = raw.trim();
 
   // Strip markdown code fences if present
@@ -156,7 +177,7 @@ export function extractAndValidateOpenApiJson(raw: string): Record<string, any> 
   throw new Error('Failed to parse OpenAPI JSON from LLM response. The output was not valid JSON.');
 }
 
-function validateOpenApiStructure(spec: Record<string, any>): Record<string, any> {
+function validateOpenApiStructure(spec: OpenApiSpec): OpenApiSpec {
   if (!spec.openapi) {
     spec.openapi = '3.0.3';
   } else if (!spec.openapi.startsWith('3.0')) {
@@ -176,10 +197,10 @@ function validateOpenApiStructure(spec: Record<string, any>): Record<string, any
   return spec;
 }
 
-export function mergeOpenApiSpecs(specs: Record<string, any>[]): Record<string, any> {
+export function mergeOpenApiSpecs(specs: OpenApiSpec[]): OpenApiSpec {
   if (specs.length === 1) return specs[0];
 
-  const merged: Record<string, any> = {
+  const merged: OpenApiSpec = {
     openapi: specs[0].openapi || '3.0.3',
     info: specs[0].info || { title: 'API Documentation', version: '1.0.0' },
     tags: [],
@@ -236,7 +257,7 @@ export function mergeOpenApiSpecs(specs: Record<string, any>[]): Record<string, 
 }
 
 export function generateScalarHtml(
-  spec: Record<string, any>,
+  spec: OpenApiSpec,
   options?: { serveMode?: boolean },
 ): string {
   const title = spec.info?.title || 'API Reference';

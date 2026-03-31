@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { ScanResult } from './scanner.js';
-import { generateScalarHtml } from './openapi.js';
+import { generateScalarHtml, type OpenApiSpec } from './openapi.js';
 
 export interface OutputMeta {
   inputTokens: number;
@@ -79,7 +79,7 @@ function extractJsonFromMarkdown(content: string): string {
 }
 
 export async function writeOpenApiOutput(
-  spec: Record<string, any>,
+  spec: OpenApiSpec,
   options: { outputPath: string; writeHtml: boolean },
 ): Promise<{ specPath: string; htmlPath?: string }> {
   const dir = path.dirname(options.outputPath);

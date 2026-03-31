@@ -13,6 +13,7 @@ import {
   buildOpenApiPromptChunks,
   extractAndValidateOpenApiJson,
   mergeOpenApiSpecs,
+  type OpenApiSpec,
 } from './openapi.js';
 import { isGitHubSource, parseGitHubSource, downloadRepo, cleanupRepo } from './github.js';
 
@@ -141,20 +142,21 @@ export async function runRoutedoc(directory: string, options: RoutedocOptions): 
       totalInputTokens += response.inputTokens;
       totalOutputTokens += response.outputTokens;
       model = response.model;
-    } catch (error: any) {
+    } catch (error: unknown) {
       spinner.fail('LLM call failed.');
+      const err = error as { status?: number; message?: string; stack?: string };
 
-      if (error.status === 429) {
+      if (err.status === 429) {
         console.error(chalk.red('Rate limit exceeded. Please wait and try again.'));
-        console.error(chalk.yellow(`Detail: ${error.message}`));
-      } else if (error.message?.includes('context_length_exceeded')) {
+        console.error(chalk.yellow(`Detail: ${err.message}`));
+      } else if (err.message?.includes('context_length_exceeded')) {
         console.error(chalk.red('Too much code for a single LLM call.'));
         console.error(chalk.yellow('Try scanning a subdirectory: apiscribe ./my-project/app/api'));
-        console.error(chalk.yellow(`Detail: ${error.message}`));
+        console.error(chalk.yellow(`Detail: ${err.message}`));
       } else {
-        console.error(chalk.red(`Error: ${error.message}`));
-        if (options.verbose && error.stack) {
-          console.error(chalk.dim(error.stack));
+        console.error(chalk.red(`Error: ${err.message}`));
+        if (options.verbose && err.stack) {
+          console.error(chalk.dim(err.stack));
         }
       }
       process.exit(1);
@@ -174,9 +176,9 @@ export async function runRoutedoc(directory: string, options: RoutedocOptions): 
     const specs = results.map((raw) => {
       try {
         return extractAndValidateOpenApiJson(raw);
-      } catch (err: any) {
+      } catch (err: unknown) {
         spinner.fail('Failed to parse OpenAPI spec from LLM response.');
-        console.error(chalk.red(err.message));
+        console.error(chalk.red((err as Error).message));
         if (options.verbose) {
           console.error(chalk.dim('\nRaw LLM output (first 500 chars):'));
           console.error(chalk.dim(raw.slice(0, 500)));
@@ -231,9 +233,9 @@ export async function resolveAndRun(input: string, options: RoutedocOptions): Pr
   let tmpDir: string;
   try {
     tmpDir = await downloadRepo(source);
-  } catch (error: any) {
+  } catch (error: unknown) {
     spinner.fail(`Failed to download ${label}`);
-    console.error(chalk.red(error.message));
+    console.error(chalk.red((error as Error).message));
     process.exit(1);
   }
 
@@ -246,18 +248,19 @@ export async function resolveAndRun(input: string, options: RoutedocOptions): Pr
   }
 }
 
-function buildChatSystemPrompt(spec: Record<string, any>): string {
+function buildChatSystemPrompt(spec: OpenApiSpec): string {
   const title = spec.info?.title || 'API';
   const description = spec.info?.description || '';
   const baseUrl = spec.servers?.[0]?.url || '';
 
   const endpoints: string[] = [];
   for (const [path, methods] of Object.entries(spec.paths || {})) {
-    for (const [method, details] of Object.entries(methods as Record<string, any>)) {
+    for (const [method, details] of Object.entries(methods)) {
       if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
-        const summary = details.summary || details.description || '';
-        const params = (details.parameters || [])
-          .map((p: any) => `${p.name} (${p.in})`)
+        const op = details as { summary?: string; description?: string; parameters?: Array<{ name: string; in: string }> };
+        const summary = op.summary || op.description || '';
+        const params = (op.parameters || [])
+          .map((p) => `${p.name} (${p.in})`)
           .join(', ');
         let line = `  ${method.toUpperCase()} ${path}`;
         if (summary) line += ` — ${summary}`;
@@ -285,7 +288,7 @@ When answering:
 
 async function startDocServer(
   specPath: string,
-  spec: Record<string, any>,
+  spec: OpenApiSpec,
   llmOptions: { provider: LlmProvider; model?: string; apiKey: string },
 ): Promise<void> {
   const port = 3000;
@@ -320,9 +323,9 @@ async function startDocServer(
           });
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ reply: response.content }));
-        } catch (error: any) {
+        } catch (error: unknown) {
           res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: error.message || 'Chat failed' }));
+          res.end(JSON.stringify({ error: (error as Error).message || 'Chat failed' }));
         }
       });
       return;
