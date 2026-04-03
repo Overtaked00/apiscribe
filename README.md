@@ -34,6 +34,12 @@ npx apiscribe ./my-project --serve
 npx apiscribe expressjs/express --serve
 ```
 
+> **Tip:** Install globally to skip `npx` every time:
+> ```bash
+> npm i -g apiscribe
+> apiscribe ./my-project --serve
+> ```
+
 That's it. Your browser opens with interactive API docs on `localhost:3000`, complete with an AI chat assistant you can ask questions about your API.
 
 ![Interactive API docs](https://raw.githubusercontent.com/Overtaked00/apiscribe/main/assets/web-docs.png)
